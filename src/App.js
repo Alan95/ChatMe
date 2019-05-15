@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
@@ -13,6 +13,10 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import Radio from '@material-ui/core/Radio';
 import FormGroup from '@material-ui/core/FormGroup';
+import axios from 'axios';
+import { Select } from '@material-ui/core';
+import MenuItem from '@material-ui/core/MenuItem';
+import InputLabel from '@material-ui/core/InputLabel';
 
 const useStyles = makeStyles(theme => ({
   icon: {
@@ -40,9 +44,37 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const App = () => {
-  const classes = useStyles();
-  const [value, setValue] = useState('female');
+  const classes = useStyles()
+  const [value, setValue] = useState('female')
   const [showForm, setShowForm] = useState(false)
+  const [chosenCountry, setChosenCountry] = useState()
+  const [defaultCountries, setDefaultCountries] = useState([])
+  const [checkNewsletter, setCheckNewsletter] = useState(false)
+
+  useEffect(() => {
+    getCountries()
+  }, []);
+
+  const getCountries = async e => {
+    try {
+      let res = await axios.get('https://api.printful.com/countries')
+      let countries = res.data.result.map((item) => {
+        return item['name']
+      })
+
+      setDefaultCountries(countries)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  const handleChange = name => event => {
+    setChosenCountry(event.target.value)
+  }
+
+  const handleCheckbox = name => event => {
+    setCheckNewsletter(event.target.checked)
+  }
 
   return (
     <div className="App">
@@ -107,14 +139,27 @@ const App = () => {
               <FormControlLabel value="other" control={<Radio />} label="Other" />
             </RadioGroup>
           </FormControl>
+          <FormControl className={classes.formControl}>
+            <InputLabel htmlFor="select-country">Country</InputLabel>
+            <Select
+              native
+              value={chosenCountry}
+              onChange={handleChange}
+              input={<Input id="select-country" />}
+            >
+            {defaultCountries.map(country => (
+                <option value={country} key={country}>{country}</option>
+            ))}
+            </Select>
+          </FormControl>  
           <FormControlLabel
             control={
-              <Checkbox checked="true" value="checkedA" />
+              <Checkbox checked={checkNewsletter} onChange={handleCheckbox(checkNewsletter)} value="checkedA" />
             }
             label="Subscribe to Newsletter"
           />
           <Button variant="contained" color="primary">Subscribe</Button>
-      </FormGroup>) : ( <h1>no</h1>)}
+      </FormGroup>) : null}
     </div>
   );
 }
