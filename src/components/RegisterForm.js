@@ -41,14 +41,23 @@ const useStyles = makeStyles(theme => ({
       justify:'center'
     },
     formControl: {
-      margin: theme.spacing(3)
+      margin: theme.spacing(1.5)
     },
   }));
 
 const RegisterForm = () => {
   const classes = useStyles()
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    gender: "female",
+    country: "",
+    newsletter: false 
+  });
   const [value, setValue] = useState('female')
-  const [showForm, setShowForm] = useState(false)
   const [chosenCountry, setChosenCountry] = useState()
   const [defaultCountries, setDefaultCountries] = useState([])
   const [checkNewsletter, setCheckNewsletter] = useState(false)
@@ -60,57 +69,89 @@ const RegisterForm = () => {
   const getCountries = async e => {
     try {
       let res = await axios.get('https://api.printful.com/countries')
-      let countries = res.data.result.map((item) => {
+      setDefaultCountries(res.data.result.map((item) => {
         return item['name']
-      })
-
-      setDefaultCountries(countries)
+      }))
     } catch (err) {
       console.log(err)
     }
   }
 
-  const handleChange = name => event => {
-    setChosenCountry(event.target.value)
+  const handleChange = event => {
+    setFormData({
+      ...formData,
+      [event.target.name]: event.target.value
+    })
   }
 
-  const handleCheckbox = name => event => {
-    setCheckNewsletter(event.target.checked)
+  const handleChecked = event => {
+    setFormData({
+      ...formData,
+      [event.target.name]: event.target.checked
+    })
   }
+
+  const handleSubmit = event => {
+    event.preventDefault()
+    return
+  }
+
+  const { firstName, lastName, email, password, 
+          confirmPassword, gender, country, newsletter } = formData;
 
   return (
-    <FormGroup className={classes.formContainer}>
+    <form onSubmit={handleSubmit} className={classes.formContainer}>
       <h3>Register</h3>
       <Input
-        defaultValue="John"
+        value={firstName}
+        onChange={handleChange}
+        placeholder="First name"
+        type="text"
+        name="firstName"
         className={classes.input}
         inputProps={{
         'aria-label': 'First Name'
         }}
       />
       <Input
-        defaultValue="John"
+        value={lastName}
+        onChange={handleChange}
+        placeholder="Last name"
+        type="text"
+        name="lastName"
         className={classes.input}
         inputProps={{
         'aria-label': 'Last Name'
         }}
       />
       <Input
-        defaultValue="John"
+        value={email}
+        onChange={handleChange}
+        placeholder="Email"
+        type="email"
+        name="email"
         className={classes.input}
         inputProps={{
         'aria-label': 'E-Mail'
         }}
       />
       <Input
-        defaultValue="John"
+        value={password}
+        onChange={handleChange}
+        placeholder="Enter Password"
+        type="password"
+        name="password"
         className={classes.input}
         inputProps={{
         'aria-label': 'Password'
         }}
       />   
       <Input
-        defaultValue="John"
+        value={confirmPassword}
+        onChange={handleChange}
+        placeholder="Verify Password"
+        type="confirmPassword"
+        name="confirmPassword"
         className={classes.input}
         inputProps={{
         'aria-label': 'Password'
@@ -119,22 +160,24 @@ const RegisterForm = () => {
       <FormControl component="fieldset" className={classes.formControl}>
         <FormLabel component="legend">Gender</FormLabel>
         <RadioGroup
-        aria-label="Gender"
-        name="gender1"
-        value={value}
+          aria-label="Gender"
+          name="gender"
+          value={gender}
+          onChange={handleChange}
         >
         <FormControlLabel value="female" control={<Radio />} label="Female" />
         <FormControlLabel value="male" control={<Radio />} label="Male" />
         <FormControlLabel value="other" control={<Radio />} label="Other" />
         </RadioGroup>
       </FormControl>
+      <InputLabel htmlFor="select-country">Country</InputLabel>
       <FormControl className={classes.formControl}>
-        <InputLabel htmlFor="select-country">Country</InputLabel>
         <Select
-        native
-        value={chosenCountry}
-        onChange={handleChange}
-        input={<Input id="select-country" />}
+          native
+          value={country}
+          name="country"
+          onChange={handleChange}
+          input={<Input id="select-country" />}
         >
         {defaultCountries.map(country => (
             <option value={country} key={country}>{country}</option>
@@ -143,12 +186,17 @@ const RegisterForm = () => {
       </FormControl>  
       <FormControlLabel
         control={
-        <Checkbox checked={checkNewsletter} onChange={handleCheckbox(checkNewsletter)} value="checkedA" />
+          <Checkbox 
+            checked={newsletter} 
+            name="newsletter" 
+            value={newsletter} 
+            onChange={handleChecked}
+          />
         }
         label="Subscribe to Newsletter"
       />
-      <Button variant="contained" color="primary">Subscribe</Button>
-    </FormGroup>
+      <Button variant="contained" color="primary" type="submit">Register</Button>
+    </form>
   );
 }
 
